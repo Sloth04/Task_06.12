@@ -52,21 +52,21 @@ def main():
     num = 0
     dir_list = Path.cwd().rglob('input*.xlsx')
     output = Path.cwd() / 'output'
-    logger.info(f'Founded {len(list(dir_list))} file/-s')
+    logger.info('Founded %s file/-s', len(list(dir_list)))
     output.mkdir(parents=True, exist_ok=True)
     logger.info('Output dir is created ')
     engine = create_engine(f'sqlite:///{output}\\{DATABASE_NAME}', echo=False)
-    logger.info(f'Database {DATABASE_NAME} is created by path {output}')
+    logger.info('Database %sis created by path %s', DATABASE_NAME, output)
     for item in dir_list:
         df = create_df(item)
         df = select(df)
         num += 1
         file_name = f'result{num}'
         df.to_sql(file_name, index=False, con=engine, if_exists='replace')
-        engine.execute(f'SELECT * FROM {file_name}').fetchall()
-        logger.debug(f'SQL table named {file_name} is created')
+        engine.execute('SELECT * FROM %s', file_name).fetchall()
+        logger.debug('SQL table named %s is created', file_name)
         df.to_excel(f'{output}\\{file_name}.xlsx', index=False)
-        logger.debug(f'Excel table named {file_name}.xlsx is created')
+        logger.debug('Excel table named %s.xlsx is created', file_name)
 
 
 if __name__ == '__main__':
