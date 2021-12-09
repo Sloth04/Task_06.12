@@ -125,4 +125,4 @@ venv.bak/
 dmypy.json
 /input/
 /output/
-input1.xlsx*.xlsx
+input1.xlsx
