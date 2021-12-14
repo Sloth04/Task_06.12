@@ -19,15 +19,15 @@ class Records(Base):
     id = Column(Integer, primary_key=True)
     w_code = Column(String)
     id_resourse = Column(Integer, ForeignKey('resourse.id'))
-    id_type_direct = Column(Integer, ForeignKey('models.id'))
+    id_type_direction = Column(Integer, ForeignKey('models.id'))
     datetime = Column(DateTime)
     volume = Column(Integer)
     payment = Column(Float)
 
-    def __init__(self, w_code: str,  id_resourse: int, id_type_direct: int, datetime: DateTime, volume: int, payment: float):
+    def __init__(self, w_code: str,  id_resourse: int, id_type_direction: int, datetime: DateTime, volume: int, payment: float):
         self.w_code = w_code
         self.id_resourse = id_resourse
-        self.id_type_direct = id_type_direct
+        self.id_type_direction = id_type_direction
         self.datetime = datetime
         self.volume = volume
         self.payment = payment
@@ -114,64 +114,43 @@ def create_df(path):
     return df
 
 
-def fill_models(df):
+def create_models(df):
+    variants = []
     dict_models = {}
-    check = []
     for item in df['service_type'].unique():
         temp = df.loc[df['service_type'] == item]
         dict_models[f'{item}'] = list(temp['direction'].unique())
-    variants = [f'{y} {x}' for y in set(dict_models.keys()) for x in set(dict_models[y])]
-    dict_models.clear()
-    variants.sort(key=len)
-    info_fdb = session.query(Models).all()
-    for row in info_fdb:
-        check.append(f'{row.service_type} {row.direction}')
-    for item in variants:
-        items = item.split()
-        dict_models[item] = variants.index(item)+1
-        if item not in check:
-            incoming_type = Models(items[0], items[1])
-            session.add(incoming_type)
-    session.commit()
-    return dict_models
+    for y in dict_models.keys():
+        for x in dict_models[y]:
+            variants.append([y, x])
+    print(variants)
+    return variants
 
 
-def fill_resourse(df):
+def create_resourse(df):
     variants = []
-    dict_r = {}
-    count = 0
-    check = []
     for item in df['company_alias'].unique():
         temp = df.loc[df['company_alias'] == item]
-        variants = [f'{item} {w} {y}' for w in list(temp['w_code'].unique()) for y in list(temp['y_code'].unique())]
-        for i in variants:
-            count += 1
-            dict_r[i] = count
-    info_fdb = session.query(Resourse).all()
-    for row in info_fdb:
-        check.append(f'{row.company_alias} {row.w_code} {row.y_code}')
-    for item in dict_r.keys():
-        items = item.split()
-        if item not in check:
-            incoming_resourse = Resourse(items[1], items[0], items[2])
-            session.add(incoming_resourse)
-    session.commit()
-    return dict_r
+        for y in list(temp['w_code'].unique()):
+            for x in list(temp['y_code'].unique()):
+                variants.append([item, y, x])
+    print(variants)
+    return variants
 
 
-def fill_records(df):
-    check = []
-    info_fdb = session.query(Records).all()
-    for row in info_fdb:
-        check.append(f'{row.w_code} {row.datetime} {row.volume}')
-    for index, row in df.iterrows():
-        item = str(row['w_code']) + ' ' + str(row['datetime']) + ' ' + str(row['volume'])
-        # if item not in check:
-        resourse = get_or_create(session, Resourse, w_code=row['w_code'])
-        model = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
-        incoming_record = Records(w_code=row['w_code'], id_resourse=resourse, id_type_direct=model, datetime=row['datetime'],
-                                  volume=row['volume'], payment=row['payment'])
-        session.add(incoming_record)
+def fill_db(df, l_resourse, l_models):
+    for res in l_resourse:
+        resourse = get_or_create(session, Resourse, company_alias=res[0], w_code=res[1], y_code=res[2])
+        session.add(resourse)
+    for mod in l_models:
+        models = get_or_create(session, Models, service_type=mod[0], direction=mod[1])
+        session.add(models)
+    # for index, row in df.iterrows():
+    #     r = get_or_create(session, Resourse, w_code=row['w_code'])
+    #     m = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
+    #     incoming_record = Records(w_code=row['w_code'], id_resourse=r, id_type_direction=m, datetime=row['datetime'],
+    #                               volume=row['volume'], payment=row['payment'])
+    #     session.add(incoming_record)
     session.commit()
 
 
@@ -188,15 +167,9 @@ def main():
         df = grouper(df)
         num += 1
         file_name = f'result{num}'
-        d_models = fill_models(df)
-        df['id_type_direction'] = df.apply(lambda x: str(x['service_type']) + ' ' + x['direction'], axis=1)
-        df['id_type_direction'] = df['id_type_direction'].replace(d_models)
-        d_resourse = fill_resourse(df)
-        df['id_resourse'] = df.apply(lambda x: str(x['company_alias']) + ' ' + x['w_code'] + ' ' + x['y_code'], axis=1)
-        df['id_resourse'] = df['id_resourse'].replace(d_resourse)
-        # df = df.drop(columns=['company_alias', 'y_code', 'service_type', 'direction'])
-        logger.debug(f'Dataframe added ids \n{df.head().to_string()}')
-        fill_records(df)
+        models = create_models(df)
+        resourse = create_resourse(df)
+        fill_db(df, resourse, models)
         # save = session.query(Records).filter_by(user_id=user_id).order_by(asc(UserSetting.name)).all()
         # df.to_sql(file_name, index=False, con=engine, if_exists='replace')
         # logger.info(f'SQL table named {file_name} is created')
