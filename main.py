@@ -1,93 +1,20 @@
-import numpy as np
 import pandas as pd
-import sys
-import logging
-from pathlib import Path
-from logging import StreamHandler, Formatter
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
-from sqlalchemy.orm import relationship
-from report import *
+from model_db import Records, Resourse, Models
+from model_db import Session
+from config import *
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = StreamHandler(stream=sys.stdout)
-handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
-logger.addHandler(handler)
-
-Base = declarative_base()
-
-DATABASE_NAME = 'Task_06_12.sqlite'
-
-engine2 = create_engine(f'sqlite:///output\\{DATABASE_NAME}', echo=False)
-Session = sessionmaker(bind=engine2)
 session = Session()
-
-
-class Records(Base):
-    __tablename__ = 'records'
-
-    id = Column(Integer, primary_key=True)
-    w_code = Column(String)
-    id_resourse = Column(Integer, ForeignKey('resourse.id'))
-    id_type_direction = Column(Integer, ForeignKey('models.id'))
-    datetime = Column(DateTime)
-    volume = Column(Integer)
-    payment = Column(Float)
-
-    def __init__(self, w_code: str,  id_resourse: int, id_type_direction: int, datetime: DateTime, volume: int, payment: float):
-        self.w_code = w_code
-        self.id_resourse = id_resourse
-        self.id_type_direction = id_type_direction
-        self.datetime = datetime
-        self.volume = volume
-        self.payment = payment
-
-
-class Models(Base):
-    __tablename__ = 'models'
-
-    id = Column(Integer, primary_key=True)
-    service_type = Column(String)
-    direction = Column(String)
-    children = relationship('Records')
-
-    def __init__(self, service_type: str, direction: str):
-        self.service_type = service_type
-        self.direction = direction
-
-
-class Resourse(Base):
-    __tablename__ = 'resourse'
-
-    id = Column(Integer, primary_key=True)
-    w_code = Column(String)
-    company_alias = Column(String)
-    y_code = Column(String)
-    children = relationship('Records')
-
-    def __init__(self, w_code: str, company_alias: str, y_code: str):
-        self.w_code = w_code
-        self.company_alias = company_alias
-        self.y_code = y_code
-
-
-y_code_dict = {'10Y1001C--000182': 'CA_UA_IPS', '10YUA-WEPS-----0': 'CA_UA_BEI'}
-df_n_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'date', 'time', 'direction', 'volume', 'payment']
-result_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'datetime', 'direction']
 
 
 def get_or_create(session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
-        return instance
+        return instance, False
     else:
         instance = model(**kwargs)
         session.add(instance)
         session.commit()
-        return instance
+        return instance, True
 
 
 def grouper(df):
@@ -109,67 +36,31 @@ def create_df(path):
     return df
 
 
-def create_models(df):
-    variants = []
-    dict_models = {}
-    for item in df['service_type'].unique():
-        temp = df.loc[df['service_type'] == item]
-        dict_models[f'{item}'] = list(temp['direction'].unique())
-    for y in dict_models.keys():
-        for x in dict_models[y]:
-            variants.append([y, x])
-    return variants
-
-
-def create_resourse(df):
-    variants = []
-    for item in df['company_alias'].unique():
-        temp = df.loc[df['company_alias'] == item]
-        for y in list(temp['w_code'].unique()):
-            for x in list(temp['y_code'].unique()):
-                variants.append([item, y, x])
-    return variants
-
-
-def fill_db(df, l_resourse, l_models):
-    for res in l_resourse:
-        resourse = get_or_create(session, Resourse, company_alias=res[0], w_code=res[1], y_code=res[2])
-        session.add(resourse)
-    for mod in l_models:
-        models = get_or_create(session, Models, service_type=mod[0], direction=mod[1])
-        session.add(models)
+def fill_db(df):
     for index, row in df.iterrows():
-        r = get_or_create(session, Resourse, w_code=row['w_code'])
-        m = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
+        r, r_created = get_or_create(session, Resourse, company_alias=row['company_alias'], w_code=row['w_code'], y_code=row['y_code'])
+        m, m_created = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
+        # check flag
         incoming_record = Records(w_code=row['w_code'], id_resourse=r.id, id_type_direction=m.id, datetime=row['datetime'],
                                   volume=row['volume'], payment=row['payment'])
         session.add(incoming_record)
     session.commit()
 
 
-dir_list = list(Path.cwd().rglob('input*.xlsx'))
-output = Path.cwd() / 'output'
-
-
 def main():
-    Base.metadata.create_all(engine2)
+    dir_list = list(Path.cwd().rglob('input*.xlsx'))
     num = 0
     logger.info(f'Founded {len(dir_list)} file/-s:{dir_list}')
     output.mkdir(parents=True, exist_ok=True)
     for item in dir_list:
         df = create_df(item)
         df = grouper(df)
-        num += 1
+        num += 1  # swap to enumerate
         file_name = f'result{num}'
-        models = create_models(df)
-        resourse = create_resourse(df)
-        fill_db(df, resourse, models)
-        # df.to_sql(file_name, index=False, con=engine, if_exists='replace')
-        # df.to_excel(f'{output / (file_name + ".xlsx")}', index=False)
-        # logger.info(f'Excel {file_name}.xlsx is created')
+        fill_db(df)
 
 
 if __name__ == '__main__':
-    # main()
-    report()
+    main()
+
 
