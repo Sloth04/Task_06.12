@@ -9,8 +9,21 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
+from report import *
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = StreamHandler(stream=sys.stdout)
+handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
+logger.addHandler(handler)
 
 Base = declarative_base()
+
+DATABASE_NAME = 'Task_06_12.sqlite'
+
+engine2 = create_engine(f'sqlite:///output\\{DATABASE_NAME}', echo=False)
+Session = sessionmaker(bind=engine2)
+session = Session()
 
 
 class Records(Base):
@@ -61,23 +74,7 @@ class Resourse(Base):
         self.y_code = y_code
 
 
-engine2 = create_engine(f'sqlite:///output\\test_db.sqlite', echo=False)
-Base.metadata.create_all(engine2)
-Session = sessionmaker(bind=engine2)
-session = Session()
-
-DATABASE_NAME = 'Task_06_12.sqlite'
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = StreamHandler(stream=sys.stdout)
-handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
-logger.addHandler(handler)
-
-direction_dict = {'Symmetric': 'Симетрично', 'Up': 'Вгору', 'Down': 'Вниз'}
 y_code_dict = {'10Y1001C--000182': 'CA_UA_IPS', '10YUA-WEPS-----0': 'CA_UA_BEI'}
-service_type_dict = {'FCR': 'РПЧ', 'aFRR': 'аРВЧ', 'mFRR': 'рРВЧ'}
 df_n_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'date', 'time', 'direction', 'volume', 'payment']
 result_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'datetime', 'direction']
 
@@ -107,8 +104,6 @@ def create_df(path):
     df = df.drop(columns=['Formula Label', 'Product Type', 'Auction ID', 'Availability Flag', 'Price (₴/MWh)', 'Transaction Type'])
     df.columns = df_n_columns
     df['y_code'] = df['y_code'].replace(y_code_dict)
-    # df['service_type'] = df['service_type'].replace(service_type_dict) #replaced to ukr_language
-    # df['direction'] = df['direction'].replace(direction_dict) #replaced to ukr_language
     df['datetime'] = pd.to_datetime(df['date'].dt.strftime('%Y-%m-%d') + ' ' + df['time'].str[:2] + ':00')
     logger.debug(f'Dataframe from file {path} after def create_df\n{df} ')
     return df
@@ -152,14 +147,15 @@ def fill_db(df, l_resourse, l_models):
     session.commit()
 
 
+dir_list = list(Path.cwd().rglob('input*.xlsx'))
+output = Path.cwd() / 'output'
+
+
 def main():
+    Base.metadata.create_all(engine2)
     num = 0
-    dir_list = list(Path.cwd().rglob('input*.xlsx'))
-    output = Path.cwd() / 'output'
     logger.info(f'Founded {len(dir_list)} file/-s:{dir_list}')
     output.mkdir(parents=True, exist_ok=True)
-    engine = create_engine(f'sqlite:///{output}\\{DATABASE_NAME}', echo=False)
-    Base.metadata.create_all(engine)
     for item in dir_list:
         df = create_df(item)
         df = grouper(df)
@@ -168,12 +164,12 @@ def main():
         models = create_models(df)
         resourse = create_resourse(df)
         fill_db(df, resourse, models)
-        # save = session.query(Records).filter_by(user_id=user_id).order_by(asc(UserSetting.name)).all()
         # df.to_sql(file_name, index=False, con=engine, if_exists='replace')
-        # logger.info(f'SQL table named {file_name} is created')
         # df.to_excel(f'{output / (file_name + ".xlsx")}', index=False)
         # logger.info(f'Excel {file_name}.xlsx is created')
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    report()
+
