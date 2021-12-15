@@ -123,7 +123,6 @@ def create_models(df):
     for y in dict_models.keys():
         for x in dict_models[y]:
             variants.append([y, x])
-    print(variants)
     return variants
 
 
@@ -134,7 +133,6 @@ def create_resourse(df):
         for y in list(temp['w_code'].unique()):
             for x in list(temp['y_code'].unique()):
                 variants.append([item, y, x])
-    print(variants)
     return variants
 
 
@@ -145,12 +143,12 @@ def fill_db(df, l_resourse, l_models):
     for mod in l_models:
         models = get_or_create(session, Models, service_type=mod[0], direction=mod[1])
         session.add(models)
-    # for index, row in df.iterrows():
-    #     r = get_or_create(session, Resourse, w_code=row['w_code'])
-    #     m = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
-    #     incoming_record = Records(w_code=row['w_code'], id_resourse=r, id_type_direction=m, datetime=row['datetime'],
-    #                               volume=row['volume'], payment=row['payment'])
-    #     session.add(incoming_record)
+    for index, row in df.iterrows():
+        r = get_or_create(session, Resourse, w_code=row['w_code'])
+        m = get_or_create(session, Models, service_type=row['service_type'], direction=row['direction'])
+        incoming_record = Records(w_code=row['w_code'], id_resourse=r.id, id_type_direction=m.id, datetime=row['datetime'],
+                                  volume=row['volume'], payment=row['payment'])
+        session.add(incoming_record)
     session.commit()
 
 
