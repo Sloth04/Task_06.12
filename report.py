@@ -1,6 +1,6 @@
 import pandas as pd
-from main import Records, Models, Resourse
-from main import session
+from insert import Records, Models, Resourse
+from insert import session
 from config import *
 
 
