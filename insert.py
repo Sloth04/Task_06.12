@@ -32,7 +32,7 @@ def create_df(path):
                           'Availability Flag', 'Price (₴/MWh)', 'Transaction Type'])
     df.columns = df_n_columns
     df['y_code'] = df['y_code'].replace(y_code_dict)
-    df['datetime'] = pd.to_datetime(df['date'].dt.strftime('%Y-%m-%d') + ' ' + df['time'].str[:2] + ':00')
+    df['datetime'] = pd.to_datetime(df['date'].dt.strftime('%Y-%m-%d') + ' ' + df['time'].str[:2] + ':00')  # learn
     logger.debug(f'Dataframe from file {path} after def create_df\n{df} ')
     return df
 
