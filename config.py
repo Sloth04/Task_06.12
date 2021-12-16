@@ -13,9 +13,32 @@ output = Path.cwd() / 'output'
 
 DATABASE_NAME = 'Task_06_12.sqlite'
 
-result_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'datetime', 'direction']
-df_n_columns = ['company_alias', 'y_code', 'service_type', 'w_code', 'date', 'time', 'direction', 'volume', 'payment']
-y_code_dict = {'10Y1001C--000182': 'CA_UA_IPS', '10YUA-WEPS-----0': 'CA_UA_BEI'}
+result_columns = [
+    'company_alias',
+    'y_code',
+    'service_type',
+    'w_code',
+    'datetime',
+    'direction']
+df_n_columns = [
+    'company_alias',
+    'y_code',
+    'service_type',
+    'w_code',
+    'date',
+    'time',
+    'direction',
+    'volume',
+    'payment']
+y_code_dict = {
+    '10Y1001C--000182': 'CA_UA_IPS',
+    '10YUA-WEPS-----0': 'CA_UA_BEI'}
 
-service_type_dict = {'FCR': 'РПЧ', 'aFRR': 'аРВЧ', 'mFRR': 'рРВЧ'}
-direction_dict = {'Symmetric': 'Симетрично', 'Up': 'Вгору', 'Down': 'Вниз'}
+service_type_dict = {
+    'FCR': 'РПЧ',
+    'aFRR': 'аРВЧ',
+    'mFRR': 'рРВЧ'}
+direction_dict = {
+    'Symmetric': 'Симетрично',
+    'Up': 'Вгору',
+    'Down': 'Вниз'}

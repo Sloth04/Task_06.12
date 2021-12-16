@@ -1,6 +1,5 @@
 import pandas as pd
-from model_db import Records, Resourse, Models
-from model_db import Session
+from model_db import Records, Resourse, Models, Session
 from config import *
 
 session = Session()
@@ -39,22 +38,25 @@ def create_df(path):
 
 def fill_db(df):
     for index, row in df.iterrows():
-        incoming_resourse, r_created = get_or_create(session, Resourse,
-                                                     company_alias=row['company_alias'],
-                                                     w_code=row['w_code'],
-                                                     y_code=row['y_code'])
-        if r_created:
+        incoming_resourse, r_flag = get_or_create(session, Resourse,
+                                                  company_alias=row['company_alias'],
+                                                  w_code=row['w_code'],
+                                                  y_code=row['y_code'])
+        if r_flag:
             logger.warning(f'Created row in Resourse with param\n '
                            f'company_alias={row["company_alias"]}, w_code={row["w_code"]}, y_code={row["y_code"]}')
-        m, m_created = get_or_create(session, Models,
-                                     service_type=row['service_type'],
-                                     direction=row['direction'])
-        if m_created:
+        incoming_model, m_flag = get_or_create(session, Models,
+                                               service_type=row['service_type'],
+                                               direction=row['direction'])
+        if m_flag:
             logger.warning(f'Created row in Model with param\n '
                            f'service_type={row["service_type"]}, direction={row["direction"]}')
-        incoming_record = Records(w_code=row['w_code'], id_resourse=incoming_resourse.id,
-                                  id_type_direction=m.id,
-                                  datetime=row['datetime'], volume=row['volume'], payment=row['payment'])
+        incoming_record = Records(w_code=row['w_code'],
+                                  id_resourse=incoming_resourse.id,
+                                  id_type_direction=incoming_model.id,
+                                  datetime=row['datetime'],
+                                  volume=row['volume'],
+                                  payment=row['payment'])
         session.add(incoming_record)
     session.commit()
 
@@ -66,7 +68,7 @@ def main():
     for num, item in enumerate(dir_list):
         df = create_df(item)
         df = grouper(df)
-        file_name = f'result{num}'
+        file_name = f'result{num}'  # don`t need if we don`t print it to .xlsx
         fill_db(df)
 
 

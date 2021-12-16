@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 from config import *
 
 Base = declarative_base()
@@ -21,7 +21,8 @@ class Records(Base):
     volume = Column(Integer)
     payment = Column(Float)
 
-    def __init__(self, w_code: str,  id_resourse: int, id_type_direction: int, datetime: DateTime, volume: int, payment: float):
+    def __init__(self, w_code: str,  id_resourse: int, id_type_direction: int,
+                 datetime: DateTime, volume: int, payment: float):
         self.w_code = w_code
         self.id_resourse = id_resourse
         self.id_type_direction = id_type_direction
