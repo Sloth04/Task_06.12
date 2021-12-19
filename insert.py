@@ -18,7 +18,6 @@ def get_or_create(session, model, **kwargs):
 
 def grouper(df):
     df_new = df.groupby(result_columns, as_index=False)[['volume', 'payment']].sum()
-    df_new['monitoring'], df_new['activation'], df_new['multiplier'], df_new['penalty'] = [True, True, '', '']
     logger.debug(f'New dataframe cleared \n{df_new}')
     df_log = df.groupby(result_columns)[['volume', 'payment']].sum()
     logger.info(f'New dataframe cleared type 2 \n{df_log.head().to_string()}')
@@ -64,11 +63,9 @@ def fill_db(df):
 def main():
     dir_list = list(Path.cwd().rglob('input*.xlsx'))
     logger.info(f'Founded {len(dir_list)} file/-s:{dir_list}')
-    output.mkdir(parents=True, exist_ok=True)
-    for num, item in enumerate(dir_list):
+    for item in dir_list:
         df = create_df(item)
         df = grouper(df)
-        file_name = f'result{num}'  # don`t need if we don`t print it to .xlsx
         fill_db(df)
 
 

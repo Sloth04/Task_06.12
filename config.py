@@ -2,6 +2,23 @@ import sys
 import logging
 from pathlib import Path
 from logging import StreamHandler, Formatter
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-st', '--station',
+                    help='enter station',
+                    action='store',
+                    default='62W001')
+parser.add_argument('-d', '--day',
+                    help='enter day, format YYYY-MM-DD',
+                    action='store',
+                    default='2021-05-16')
+parser.add_argument('-t', '--type',
+                    help='enter type, FCR/aFRR/mFRR',
+                    action='store',
+                    default='FCR')
+# ask about store_true
+args = parser.parse_args()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -10,6 +27,7 @@ handler.setFormatter(Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s'))
 logger.addHandler(handler)
 
 output = Path.cwd() / 'output'
+output.mkdir(parents=True, exist_ok=True)
 
 DATABASE_NAME = 'Task_06_12.sqlite'
 
