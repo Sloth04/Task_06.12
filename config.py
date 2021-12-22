@@ -5,7 +5,7 @@ from logging import StreamHandler, Formatter
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-st', '--station',
+parser.add_argument('-s', '--station',
                     help='enter station',
                     action='store',
                     default='62W001')
@@ -13,10 +13,15 @@ parser.add_argument('-d', '--day',
                     help='enter day, format YYYY-MM-DD',
                     action='store',
                     default='2021-05-16')
-parser.add_argument('-t', '--type',
+parser.add_argument('-st', '--service_type',
                     help='enter type, FCR/aFRR/mFRR',
                     action='store',
                     default='FCR')
+parser.add_argument('-p', '--plot',
+                    help='print -p to save data as .png,'
+                         'print -pp to save as .xlsx,'
+                         'no argument means both actions',
+                    action='count', default=0)
 # ask about store_true
 args = parser.parse_args()
 
