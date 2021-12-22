@@ -46,8 +46,11 @@ You will be warned in logger if some lines is new and added to your `DATABASE_NA
 All arguments are optional 
 
 Clear run with no arguments use default values 
+
 station='62W001'
+
 day='2021-05-16'
+
 service_type='FCR'
 
 ## Contact
