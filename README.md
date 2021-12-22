@@ -19,7 +19,7 @@ Task 06.12
   pip3 install -r requirements.txt #(Python 3)
 ```
 
-##Usage
+## Usage
 
 1.Run model_db.py to create empty shell of your database.
 
@@ -45,12 +45,12 @@ You will be warned in logger if some lines is new and added to your `DATABASE_NA
 
 All arguments are optional 
 
-Clear run with no arguments use default values
+Clear run with no arguments use default values 
 station='62W001'
 day='2021-05-16'
 service_type='FCR'
 
-##Contact
+## Contact
 
 Sloth04 - sloth04ua@gmail.com
 
