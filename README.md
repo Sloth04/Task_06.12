@@ -2,8 +2,8 @@
 
 Task 06.12 
 
- A module which can create database, fill it with data from .xlsx, get reports as plots using .png format 
- and tables using .xlsx format from created database.
+ A module which can create database, fill it with data from .xlsx, get reports from created database 
+ as plots using .png format and tables using .xlsx format.
 
 ## Installation
 
