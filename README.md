@@ -6,6 +6,7 @@ Task 06.12
  and tables using .xlsx format from created database.
 
 ## Installation
+
 1.Get clone
 ```sh
    git clone https://github.com/Sloth04/Task_06.12.git
@@ -19,6 +20,7 @@ Task 06.12
 ```
 
 ##Usage
+
 1.Run model_db.py to create empty shell of your database.
 
 To change database name, enter your name in `config.py` (32 line), ends with `.sqlite`
@@ -49,6 +51,7 @@ day='2021-05-16'
 service_type='FCR'
 
 ##Contact
+
 Sloth04 - sloth04ua@gmail.com
 
 Project Link: https://github.com/Sloth04/Task_06.12.git
